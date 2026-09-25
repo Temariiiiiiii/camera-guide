@@ -2,7 +2,6 @@
   const body = document.body;
   const drawer = document.getElementById('tocDrawer');
   const toggle = document.getElementById('tocToggle');
-  const heroToggle = document.getElementById('heroToc');
   const closeButton = document.getElementById('tocClose');
   const backdrop = document.getElementById('drawerBackdrop');
   const search = document.getElementById('tocSearch');
@@ -28,7 +27,6 @@
     if (restoreFocus && lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus({ preventScroll: true });
   }
   toggle.addEventListener('click', () => body.classList.contains('drawer-open') ? closeDrawer() : openDrawer());
-  heroToggle.addEventListener('click', openDrawer);
   closeButton.addEventListener('click', closeDrawer);
   backdrop.addEventListener('click', closeDrawer);
   document.addEventListener('keydown', event => {

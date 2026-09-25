@@ -24,11 +24,47 @@ const headingRows = [...source.matchAll(/^(#{2,4})\s+(.+)\r?$/gm)].map((match, i
   return { level, title, id };
 });
 
-let nearestHeading = '相机购买攻略';
+const captions = new Map([
+  [1, '常见传感器画幅的尺寸对比'],
+  [2, '电子快门拍摄快速运动物体时出现的果冻效应'],
+  [3, '人工灯光下，电子快门照片中的明暗横纹'],
+  [4, '上下翻折屏与侧翻屏的展开方式'],
+  [5, '尼康 D3100 与两支入门镜头'],
+  [6, '索尼 A6000 与 16–50 mm 套头'],
+  [7, '索尼 A6300 与 16–50 mm 套头'],
+  [8, '尼康 D7200 与 18–140 mm 镜头'],
+  [9, '奥林巴斯 E-M10 II 与两支变焦镜头'],
+  [10, '松下 G100 与 12–32 mm 镜头'],
+  [11, '索尼 A6400、ZV-E10 与 16–50 mm 套头'],
+  [12, '尼康 D610 与 24–120 mm、50 mm 镜头'],
+  [13, '奥林巴斯 E-M5 II 与 14–42 mm 镜头'],
+  [14, '索尼 A6400、ZV-E10 与 18–135 mm 镜头'],
+  [15, '佳能 EOS R50 与 RF-S 18–45 mm 镜头'],
+  [16, '尼康 Z50 与两支 DX 变焦镜头'],
+  [17, '作者的尼康 Z5 与 Z 24–50 mm 镜头'],
+  [18, '佳能 EOS R8 与 RF 24–50 mm 镜头'],
+  [19, '尼康 Z50 II 与入门镜头组合'],
+  [20, '索尼 A7 III 与腾龙 28–200 mm 镜头'],
+  [21, '佳能 EOS R10 与 RF-S 18–150 mm 镜头'],
+  [22, '佳能 EOS R6 Mark II 与银圈 24–105 mm 镜头'],
+  [23, '索尼 A7C II、A7 IV 与腾龙 28–200 mm 镜头'],
+  [24, '尼康 Zf 与 Z 24–70 mm、Z 40 mm 镜头'],
+  [25, '索尼 A6700 与可选的变焦镜头'],
+  [26, '索尼 A7C II、A7 IV 与标准变焦镜头'],
+  [27, '尼康 Z5 II 与可选的 Z 卡口镜头'],
+  [28, '佳能 EOS R6 Mark II 与红圈 24–105 mm 镜头'],
+  [29, '索尼 A7 V 与 FE 20–70 mm f/4 G 镜头'],
+  [30, '尼康 Z6 III 与 Z 24–120 mm f/4 S 镜头'],
+  [31, '佳能 EOS R6 Mark III 与 RF 24–105 mm 镜头'],
+  [32, '尼康机身与 Z 180–600 mm 长焦镜头'],
+  [33, '索尼全画幅机身的日常镜头与长焦镜头组合'],
+  [35, '24、35、50、85、135 mm 焦段的人像视角对比'],
+  [36, '同一场景在 f/4、f/8、f/16 下的景深对比'],
+  [38, '特朗普遇袭后举拳的照片'],
+  [39, '作者在适马会津工厂外与两支 I Series 镜头合影'],
+]);
 const usedImages = new Set();
 const articleWithFigures = source.split(/\r?\n/).map(line => {
-  const heading = line.match(/^#{2,4}\s+(.+)$/);
-  if (heading) nearestHeading = heading[1].replace(/^\d+(?:\.\d+)*\s+/, '').trim();
   const image = line.match(/^图片(\d+)$/);
   if (!image) return line;
   const number = Number(image[1]);
@@ -45,7 +81,8 @@ const articleWithFigures = source.split(/\r?\n/).map(line => {
     if (matches.length !== 1) throw new Error(`缺少图片${number}的站点资源`);
     assetName = matches[0];
   }
-  const caption = nearestHeading;
+  const caption = captions.get(number);
+  if (!caption) throw new Error(`图片${number}缺少图注`);
   return `<figure class="article-figure"><img src="assets/${assetName}" alt="${escapeHtml(caption)}" loading="lazy" decoding="async"><figcaption>${escapeHtml(caption)}</figcaption></figure>`;
 }).join('\n');
 
@@ -61,7 +98,6 @@ if (headingIndex !== headingRows.length) throw new Error('有目录标题未被�
 
 const toc = headingRows.map(h => `<a class="toc-link toc-level-${h.level}" href="#${h.id}" data-target="${h.id}">${escapeHtml(h.title)}</a>`).join('\n');
 const articleTitle = source.match(/^#\s+(.+)$/m)?.[1] ?? '相机购买攻略';
-const sectionCount = headingRows.filter(h => h.level === 2).length - 1;
 const html = `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -78,15 +114,15 @@ const html = `<!doctype html>
   <a class="skip-link" href="#article">跳转到正文</a>
   <header class="site-header">
     <a class="brand" href="#top" aria-label="返回文章顶部"><span class="brand-mark">◎</span><span>相机入门</span></a>
-    <div class="header-actions"><span class="header-note">一篇从零开始的购买攻略</span><button class="toc-toggle" id="tocToggle" type="button" aria-controls="tocDrawer" aria-expanded="false"><span aria-hidden="true">☰</span> 目录</button></div>
+    <button class="toc-toggle" id="tocToggle" type="button" aria-controls="tocDrawer" aria-expanded="false"><span aria-hidden="true">☰</span> 目录</button>
   </header>
   <main id="top">
-    <div class="hero"><p class="eyebrow">摄影 · 器材 · 入门</p><p class="hero-kicker">给第一次认真选相机的你</p><h1>${escapeHtml(articleTitle)}</h1><p class="hero-description">从“我真的需要相机吗”开始，慢慢弄懂画幅、镜头、机身、预算，以及相机到手后怎么拍。</p><div class="hero-meta"><span>${sectionCount} 个章节</span><span>${usedImages.size} 张配图</span><button type="button" class="hero-toc" id="heroToc">打开目录 <span aria-hidden="true">↗</span></button></div></div>
-    <div class="content-wrap"><article id="article" class="article">${body.replace(/^<h1>[\s\S]*?<\/h1>\s*/, '')}</article><footer class="article-footer"><p>读到这里，祝你找到愿意带出门、愿意一直用的那台相机。</p><a href="#top">回到顶部 ↑</a></footer></div>
+    <div class="hero"><h1>${escapeHtml(articleTitle)}</h1></div>
+    <div class="content-wrap"><article id="article" class="article">${body.replace(/^<h1>[\s\S]*?<\/h1>\s*/, '')}</article></div>
   </main>
   <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
   <aside class="toc-drawer" id="tocDrawer" aria-label="文章目录" aria-hidden="true">
-    <div class="drawer-header"><div><p class="drawer-eyebrow">NAVIGATION</p><h2>文章目录</h2></div><button class="drawer-close" id="tocClose" type="button" aria-label="关闭目录">×</button></div>
+    <div class="drawer-header"><h2>文章目录</h2><button class="drawer-close" id="tocClose" type="button" aria-label="关闭目录">×</button></div>
     <label class="search-label" for="tocSearch">搜索章节</label><input id="tocSearch" class="toc-search" type="search" placeholder="输入关键词，快速定位…" autocomplete="off">
     <nav id="tocLinks" class="toc-links" aria-label="章节跳转">${toc}</nav>
     <p class="toc-empty" id="tocEmpty" hidden>没有找到匹配的章节。</p>
